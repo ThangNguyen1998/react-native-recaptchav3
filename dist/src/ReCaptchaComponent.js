@@ -32,21 +32,20 @@ class ReCaptchaComponent extends React.PureComponent {
         this._webViewRef = null;
     }
     refreshToken() {
-        let isConnected = true
         NetInfo.fetch().then((res) => {
-            isConnected = res.isConnected
+           const isConnected = res.isConnected
+            if (!isConnected) {
+                this.props.onReceiveToken('');
+                return
+            }
+            this.props.beforeRefresh?.()
+            if (constants_1.platform.isIOS && this._webViewRef) {
+                this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action));
+            }
+            else if (constants_1.platform.isAndroid && this._webViewRef) {
+                this._webViewRef.reload();
+            }
         })
-        if (!isConnected) {
-            this.props.onReceiveToken('');
-            return
-        }
-        this.props.beforeRefresh?.()
-        if (constants_1.platform.isIOS && this._webViewRef) {
-            this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action));
-        }
-        else if (constants_1.platform.isAndroid && this._webViewRef) {
-            this._webViewRef.reload();
-        }
     }
     render() {
         return React.createElement(react_native_1.View, { style: { flex: 0.0001, width: 0, height: 0 } },
