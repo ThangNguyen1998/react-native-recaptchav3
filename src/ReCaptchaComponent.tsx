@@ -41,20 +41,19 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
   private _webViewRef: WebView | null = null
 
   public refreshToken() {
-    let isConnected = true
     NetInfo.fetch().then((res) => {
-        isConnected = res.isConnected
+      const  isConnected = res.isConnected
+        if (!isConnected) {
+          this.props.onReceiveToken('');
+          return
+      }
+      this.props.beforeRefresh?.()
+      if (platform.isIOS && this._webViewRef) {
+        this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action))
+      } else if (platform.isAndroid && this._webViewRef) {
+        this._webViewRef.reload()
+      }
     })
-    if (!isConnected) {
-        this.props.onReceiveToken('');
-        return
-    }
-    this.props.beforeRefresh?.()
-    if (platform.isIOS && this._webViewRef) {
-      this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action))
-    } else if (platform.isAndroid && this._webViewRef) {
-      this._webViewRef.reload()
-    }
   }
 
   render() {
