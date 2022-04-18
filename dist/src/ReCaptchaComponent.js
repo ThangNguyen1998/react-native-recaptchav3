@@ -4,6 +4,7 @@ const constants_1 = require("./constants");
 const React = require("react");
 const react_native_1 = require("react-native");
 const react_native_webview_1 = require("react-native-webview");
+import NetInfo from "@react-native-community/netinfo"
 const patchPostMessageJsCode = `(${String(function () {
     const originalPostMessage = window.postMessage;
     const patchedPostMessage = (message, targetOrigin, transfer) => {
@@ -31,6 +32,15 @@ class ReCaptchaComponent extends React.PureComponent {
         this._webViewRef = null;
     }
     refreshToken() {
+        let isConnected = true
+        NetInfo.fetch().then((res) => {
+            isConnected = res.isConnected
+        })
+        if (!isConnected) {
+            this.props.onReceiveToken('');
+            return
+        }
+        this.props.beforeRefresh?.()
         if (constants_1.platform.isIOS && this._webViewRef) {
             this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action));
         }
