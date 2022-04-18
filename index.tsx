@@ -26,6 +26,7 @@ class ReCaptchaV3 extends React.PureComponent<IProps, IState> {
         action={this.props.action}
         captchaDomain={this.props.captchaDomain}
         siteKey={this.props.siteKey}
+        beforeRefresh={this.props.beforeRefresh}
         onReceiveToken={(token: string) => {
           this.props.onReceiveToken(token)
         }}/>

@@ -3,6 +3,7 @@ import {platform} from './constants'
 import * as React from 'react'
 import {View} from 'react-native'
 import { WebView } from 'react-native-webview'
+import NetInfo from "@react-native-community/netinfo"
 
 type IProps = {
   captchaDomain: string
@@ -40,6 +41,15 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
   private _webViewRef: WebView | null = null
 
   public refreshToken() {
+    let isConnected = true
+    NetInfo.fetch().then((res) => {
+        isConnected = res.isConnected
+    })
+    if (!isConnected) {
+        this.props.onReceiveToken('');
+        return
+    }
+    this.props.beforeRefresh?.()
     if (platform.isIOS && this._webViewRef) {
       this._webViewRef.injectJavaScript(getExecutionFunction(this.props.siteKey, this.props.action))
     } else if (platform.isAndroid && this._webViewRef) {
