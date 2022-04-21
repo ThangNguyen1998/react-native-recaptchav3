@@ -30,10 +30,14 @@ class ReCaptchaComponent extends React.PureComponent {
     constructor() {
         super(...arguments);
         this._webViewRef = null;
+        this.timeoutFallback = null;
     }
     refreshToken() {
+        this.timeoutFallback = setTimeout(() => {
+            this.props.onReceiveToken('');
+        }, 5000)
         NetInfo.fetch().then((res) => {
-           const isConnected = res.isConnected
+            const isConnected = res.isConnected
             if (!isConnected) {
                 this.props.onReceiveToken('');
                 return
@@ -49,14 +53,17 @@ class ReCaptchaComponent extends React.PureComponent {
     }
     render() {
         return React.createElement(react_native_1.View, { style: { flex: 0.0001, width: 0, height: 0 } },
-            React.createElement(react_native_webview_1.WebView, { ref: (ref) => {
+            React.createElement(react_native_webview_1.WebView, {
+                ref: (ref) => {
                     this._webViewRef = ref;
                 }, javaScriptEnabled: true, originWhitelist: ['*'], automaticallyAdjustContentInsets: true, mixedContentMode: 'always', injectedJavaScript: patchPostMessageJsCode, source: {
                     html: getInvisibleRecaptchaContent(this.props.siteKey, this.props.action),
                     baseUrl: this.props.captchaDomain
                 }, onMessage: (e) => {
+                    this.timeoutFallback && clearTimeout(this.timeoutFallback)
                     this.props.onReceiveToken(e.nativeEvent.data);
-                } }));
+                }
+            }));
     }
 }
 exports.default = ReCaptchaComponent;

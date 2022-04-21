@@ -1,7 +1,7 @@
-import {platform} from './constants'
+import { platform } from './constants'
 
 import * as React from 'react'
-import {View} from 'react-native'
+import { View } from 'react-native'
 import { WebView } from 'react-native-webview'
 import NetInfo from "@react-native-community/netinfo"
 
@@ -41,11 +41,14 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
   private _webViewRef: WebView | null = null
 
   public refreshToken() {
+    this.timeoutFallback = setTimeout(() => {
+      this.props.onReceiveToken('');
+    }, 5000)
     NetInfo.fetch().then((res) => {
-      const  isConnected = res.isConnected
-        if (!isConnected) {
-          this.props.onReceiveToken('');
-          return
+      const isConnected = res.isConnected
+      if (!isConnected) {
+        this.props.onReceiveToken('');
+        return
       }
       this.props.beforeRefresh?.()
       if (platform.isIOS && this._webViewRef) {
@@ -57,7 +60,7 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
   }
 
   render() {
-    return <View style={{flex: 0.0001, width: 0, height: 0}}>
+    return <View style={{ flex: 0.0001, width: 0, height: 0 }}>
       <WebView
         ref={(ref) => {
           this._webViewRef = ref
@@ -72,8 +75,9 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
           baseUrl: this.props.captchaDomain
         }}
         onMessage={(e: any) => {
+          this.timeoutFallback && clearTimeout(this.timeoutFallback)
           this.props.onReceiveToken(e.nativeEvent.data)
-        }}/>
+        }} />
     </View>
   }
 }
